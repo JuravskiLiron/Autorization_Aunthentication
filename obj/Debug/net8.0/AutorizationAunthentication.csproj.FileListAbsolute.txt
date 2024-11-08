@@ -261,3 +261,4 @@ C:\Users\User\source\repos\AutorizationAunthentication\obj\Debug\net8.0\refint\A
 C:\Users\User\source\repos\AutorizationAunthentication\obj\Debug\net8.0\AutorizationAunthentication.pdb
 C:\Users\User\source\repos\AutorizationAunthentication\obj\Debug\net8.0\AutorizationAunthentication.genruntimeconfig.cache
 C:\Users\User\source\repos\AutorizationAunthentication\obj\Debug\net8.0\ref\AutorizationAunthentication.dll
+C:\Users\User\source\repos\AutorizationAunthentication\obj\Debug\net8.0\AutorizationAunthentication.sourcelink.json

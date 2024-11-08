@@ -41,6 +41,8 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
     options.AddPolicy("RequireModeratorRole", policy => policy.RequireRole("Moderator"));
+    options.AddPolicy("RequireVerifiedEmail", policy => 
+        policy.RequireClaim("EmailConfirmed", "true"));
 });
 
 builder.Services.Configure<IdentityOptions>(options =>
@@ -63,5 +65,59 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
-    
+
+await InitDatabaseAsync(app);
+
+
 app.Run();
+
+async Task InitDatabaseAsync(WebApplication app)
+{
+    
+    using var scope = app.Services.CreateScope();
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        await context.Database.MigrateAsync();
+
+        string[] roles = { "Admin", "Moderator", "User" };
+
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole(role));
+        }
+
+        var adminEmail = "admin@example.com";
+
+        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        {
+            var admin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true,
+                FirstName = "Admin",
+                LastName = "User",
+            };
+
+            var result = await userManager.CreateAsync(admin, "Admin123");
+
+            if (result.Succeeded)
+                await userManager.AddToRoleAsync(admin, "Admin");
+        }
+    }
+
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
+
